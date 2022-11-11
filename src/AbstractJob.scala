@@ -9,11 +9,11 @@ class AbstractJob extends BaseJob {
   abstractLogger.info("PARAM -- Split Size: " + splitSize)
   abstractLogger.info("PARAM -- Coverage Percent: " + coveragePercent)
 
-  var sourceConnection = getConnection(true, sourceIsAstra, sourceScbPath, sourceHost, sourceUsername, sourcePassword, sourceReadConsistencyLevel,
-    sourceTrustStorePath, sourceTrustStorePassword, sourceTrustStoreType, sourceKeyStorePath, sourceKeyStorePassword, sourceEnabledAlgorithms);
+  var sourceConnection = getConnection(isSource = true, sourceIsAstra, sourceScbPath, sourceHost, sourceUsername, sourcePassword, sourceReadConsistencyLevel,
+    sourceTrustStorePath, sourceTrustStorePassword, sourceTrustStoreType, sourceKeyStorePath, sourceKeyStorePassword, sourceEnabledAlgorithms)
 
-  var destinationConnection = getConnection(false, destinationIsAstra, destinationScbPath, destinationHost, destinationUsername, destinationPassword, destinationReadConsistencyLevel,
-    destinationTrustStorePath, destinationTrustStorePassword, destinationTrustStoreType, destinationKeyStorePath, destinationKeyStorePassword, destinationEnabledAlgorithms);
+  var destinationConnection = getConnection(isSource = false, destinationIsAstra, destinationScbPath, destinationHost, destinationUsername, destinationPassword, destinationReadConsistencyLevel,
+    destinationTrustStorePath, destinationTrustStorePassword, destinationTrustStoreType, destinationKeyStorePath, destinationKeyStorePassword, destinationEnabledAlgorithms)
 
   private def getConnection(isSource: Boolean, isAstra: String, scbPath: String, host: String, username: String, password: String, readConsistencyLevel: String,
                             trustStorePath: String, trustStorePassword: String, trustStoreType: String,
@@ -24,15 +24,15 @@ class AbstractJob extends BaseJob {
     }
 
     if ("true".equals(isAstra)) {
-      abstractLogger.info(connType + ": Connected to Astra using SCB: " + scbPath);
+      abstractLogger.info(connType + ": Connected to Astra using SCB: " + scbPath)
 
-      return CassandraConnector(sc
+      CassandraConnector(sc
         .set("spark.cassandra.auth.username", username)
         .set("spark.cassandra.auth.password", password)
         .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
         .set("spark.cassandra.connection.config.cloud.path", scbPath))
-    } else if (null != trustStorePath && !trustStorePath.trim.isEmpty) {
-      abstractLogger.info(connType + ": Connected to Cassandra (or DSE) with SSL host: " + host);
+    } else if (null != trustStorePath && trustStorePath.trim.nonEmpty) {
+      abstractLogger.info(connType + ": Connected to Cassandra (or DSE) with SSL host: " + host)
 
       // Use defaults when not provided
       var enabledAlgorithmsVar = enabledAlgorithms
@@ -40,7 +40,7 @@ class AbstractJob extends BaseJob {
         enabledAlgorithmsVar = "TLS_RSA_WITH_AES_128_CBC_SHA, TLS_RSA_WITH_AES_256_CBC_SHA"
       }
 
-      return CassandraConnector(sc
+      CassandraConnector(sc
         .set("spark.cassandra.auth.username", username)
         .set("spark.cassandra.auth.password", password)
         .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
@@ -55,9 +55,9 @@ class AbstractJob extends BaseJob {
         .set("spark.cassandra.connection.ssl.clientAuth.enabled", "true")
       )
     } else {
-      abstractLogger.info(connType + ": Connected to Cassandra (or DSE) host: " + host);
+      abstractLogger.info(connType + ": Connected to Cassandra (or DSE) host: " + host)
 
-      return CassandraConnector(sc.set("spark.cassandra.auth.username", username)
+      CassandraConnector(sc.set("spark.cassandra.auth.username", username)
         .set("spark.cassandra.auth.password", password)
         .set("spark.cassandra.input.consistency.level", readConsistencyLevel)
         .set("spark.cassandra.connection.host", host))

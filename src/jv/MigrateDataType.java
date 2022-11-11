@@ -12,7 +12,7 @@ import java.util.*;
 
 public class MigrateDataType {
     Class typeClass = Object.class;
-    List<Class> subTypes = new ArrayList<Class>();
+    List<Class> subTypes = new ArrayList<>();
 
     public MigrateDataType(String dataType) {
         if (dataType.contains("%")) {
@@ -29,18 +29,6 @@ public class MigrateDataType {
             int type = Integer.parseInt(dataType);
             typeClass = getType(type);
         }
-    }
-
-    public boolean diff(Object source, Object astra) {
-        if (source == null && astra == null) {
-            return false;
-        } else if (source == null && astra != null) {
-            return true;
-        } else if (source != null && astra == null) {
-            return true;
-        }
-
-        return !source.equals(astra);
     }
 
     private Class getType(int type) {

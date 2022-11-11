@@ -23,7 +23,8 @@ object Migrate extends AbstractJob {
     val parts: RDD[SplitPartitions.Partition] = sContext.parallelize(partitions.toSeq, partitions.size)
     abstractLogger.info("Spark parallelize created : " + parts.count() + " parts!")
 
-    parts.collect.foreach(part => {
+    parts.foreach(part => {
+      abstractLogger.warn(s"part: $part")
       sourceConnection.withSessionDo(sourceSession =>
         destinationConnection.withSessionDo(destinationSession =>
           CopyJobSession.getInstance(sourceSession, destinationSession, sc).getDataAndInsert(part.getMin, part.getMax)

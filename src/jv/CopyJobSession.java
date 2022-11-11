@@ -43,7 +43,7 @@ public class CopyJobSession extends AbstractJobSession {
 
             try {
                 ResultSet resultSet = sourceSession.execute(sourceSelectStatement.bind(hasRandomPartitioner ? min : min.longValueExact(), hasRandomPartitioner ? max : max.longValueExact()));
-                Collection<CompletionStage<AsyncResultSet>> writeResults = new ArrayList<CompletionStage<AsyncResultSet>>();
+                Collection<CompletionStage<AsyncResultSet>> writeResults = new ArrayList<>();
 
                 // cannot do batching if the writeFilter is greater than 0 or
                 // maxWriteTimeStampFilter is less than max long
@@ -54,7 +54,7 @@ public class CopyJobSession extends AbstractJobSession {
 
                         if (writeTimeStampFilter) {
                             // only process rows greater than writeTimeStampFilter
-                            Long sourceWriteTimeStamp = getLargestWriteTimeStamp(sourceRow);
+                            long sourceWriteTimeStamp = getLargestWriteTimeStamp(sourceRow);
                             if (sourceWriteTimeStamp < minWriteTimeStampFilter
                                     || sourceWriteTimeStamp > maxWriteTimeStampFilter) {
                                 continue;
@@ -81,7 +81,7 @@ public class CopyJobSession extends AbstractJobSession {
                         }
                     }
 
-                    // clear the write resultset in-case it didnt mod at 1000 above
+                    // clear write resultset in-case it didnt mod at 1000 above
                     iterateAndClearWriteResults(writeResults, 1);
                 } else {
                     BatchStatement batchStatement = BatchStatement.newInstance(BatchType.UNLOGGED);
@@ -105,7 +105,7 @@ public class CopyJobSession extends AbstractJobSession {
                         }
                     }
 
-                    // clear the write resultset in-case it didnt mod at 1000 above
+                    // clear the write resultset in-case it didn't mod at 1000 above
                     iterateAndClearWriteResults(writeResults, batchSize);
 
                     // if there are any pending writes because the batchSize threshold was not met, then write and clear them
@@ -113,7 +113,7 @@ public class CopyJobSession extends AbstractJobSession {
                         CompletionStage<AsyncResultSet> writeResultSet = astraSession.executeAsync(batchStatement);
                         writeResults.add(writeResultSet);
                         iterateAndClearWriteResults(writeResults, batchStatement.size());
-                        batchStatement = BatchStatement.newInstance(BatchType.UNLOGGED);
+                        BatchStatement.newInstance(BatchType.UNLOGGED);
                     }
                 }
 
@@ -154,7 +154,7 @@ public class CopyJobSession extends AbstractJobSession {
                 }
             }
         } else {
-            int index = 0;
+            int index;
             for (index = 0; index < selectColTypes.size(); index++) {
                 MigrateDataType dataTypeObj = selectColTypes.get(index);
                 Class dataType = dataTypeObj.typeClass;

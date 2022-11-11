@@ -28,20 +28,20 @@ public abstract class BaseJobSession {
 
     protected CqlSession sourceSession;
     protected CqlSession astraSession;
-    protected List<MigrateDataType> selectColTypes = new ArrayList<MigrateDataType>();
-    protected List<MigrateDataType> idColTypes = new ArrayList<MigrateDataType>();
-    protected List<Integer> updateSelectMapping = new ArrayList<Integer>();
+    protected List<MigrateDataType> selectColTypes = new ArrayList<>();
+    protected List<MigrateDataType> idColTypes = new ArrayList<>();
+    protected List<Integer> updateSelectMapping = new ArrayList<>();
 
     protected Integer batchSize = 1;
     protected Integer printStatsAfter = 100000;
 
     protected Boolean writeTimeStampFilter = Boolean.FALSE;
-    protected Long minWriteTimeStampFilter = 0l;
+    protected Long minWriteTimeStampFilter = 0L;
     protected Long maxWriteTimeStampFilter = Long.MAX_VALUE;
-    protected Long customWritetime = 0l;
+    protected Long customWritetime = 0L;
 
-    protected List<Integer> writeTimeStampCols = new ArrayList<Integer>();
-    protected List<Integer> ttlCols = new ArrayList<Integer>();
+    protected List<Integer> writeTimeStampCols = new ArrayList<>();
+    protected List<Integer> ttlCols = new ArrayList<>();
     protected Boolean isCounterTable;
 
     protected String sourceKeyspaceTable;
@@ -50,7 +50,7 @@ public abstract class BaseJobSession {
     protected Boolean hasRandomPartitioner;
 
     public List<MigrateDataType> getTypes(String types) {
-        List<MigrateDataType> dataTypes = new ArrayList<MigrateDataType>();
+        List<MigrateDataType> dataTypes = new ArrayList<>();
         for (String type : types.split(",")) {
             dataTypes.add(new MigrateDataType(type));
         }
@@ -68,7 +68,7 @@ public abstract class BaseJobSession {
         } else if (isCounterTable && dataType.typeClass == Long.class) {
             Object data = sourceRow.get(index, dataType.typeClass);
             if (data == null) {
-                return new Long(0);
+                return 0L;
             }
         }
 

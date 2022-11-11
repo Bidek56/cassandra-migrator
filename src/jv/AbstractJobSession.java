@@ -20,16 +20,14 @@ public class AbstractJobSession extends BaseJobSession {
         this.sourceSession = sourceSession;
         this.astraSession = astraSession;
 
-        logger.info("SC:" + sc);
-        logger.error("SC:" + sc);
         batchSize = Integer.valueOf(Util.getSparkPropOr(sc, "spark.batchSize", "1"));
         printStatsAfter = Integer.valueOf(Util.getSparkPropOr(sc, "spark.printStatsAfter", "100000"));
         if (printStatsAfter < 1) {
             printStatsAfter = 100000;
         }
 
-        readLimiter = RateLimiter.create(Integer.valueOf(Util.getSparkPropOr(sc, "spark.readRateLimit", "20000")));
-        writeLimiter = RateLimiter.create(Integer.valueOf(Util.getSparkPropOr(sc, "spark.writeRateLimit", "40000")));
+        readLimiter = RateLimiter.create(Integer.parseInt(Util.getSparkPropOr(sc, "spark.readRateLimit", "20000")));
+        writeLimiter = RateLimiter.create(Integer.parseInt(Util.getSparkPropOr(sc, "spark.writeRateLimit", "40000")));
         maxRetries = Integer.parseInt(sc.get("spark.maxRetries", "10"));
 
         sourceKeyspaceTable = Util.getSparkProp(sc, "spark.origin.keyspaceTable");
@@ -88,12 +86,8 @@ public class AbstractJobSession extends BaseJobSession {
 
         final StringBuilder selectTTLWriteTimeCols = new StringBuilder();
         String[] allCols = selectCols.split(",");
-        ttlCols.forEach(col -> {
-            selectTTLWriteTimeCols.append(",ttl(" + allCols[col] + ")");
-        });
-        writeTimeStampCols.forEach(col -> {
-            selectTTLWriteTimeCols.append(",writetime(" + allCols[col] + ")");
-        });
+        ttlCols.forEach(col -> selectTTLWriteTimeCols.append(",ttl(").append(allCols[col]).append(")"));
+        writeTimeStampCols.forEach(col -> selectTTLWriteTimeCols.append(",writetime(").append(allCols[col]).append(")"));
         String fullSelectQuery = "select " + selectCols + selectTTLWriteTimeCols + " from " + sourceKeyspaceTable + " where token(" + partionKey.trim()
                 + ") >= ? and token(" + partionKey.trim() + ") <= ?  " + sourceSelectCondition + " ALLOW FILTERING";
         sourceSelectStatement = sourceSession.prepare(fullSelectQuery);
@@ -107,12 +101,12 @@ public class AbstractJobSession extends BaseJobSession {
         if (null == insertCols || insertCols.trim().isEmpty()) {
             insertCols = selectCols;
         }
-        String insertBinds = "";
+        StringBuilder insertBinds = new StringBuilder();
         for (String str : idCols.split(",")) {
-            if (insertBinds.isEmpty()) {
-                insertBinds = str + "= ?";
+            if (insertBinds.length() == 0) {
+                insertBinds = new StringBuilder(str + "= ?");
             } else {
-                insertBinds += " and " + str + "= ?";
+                insertBinds.append(" and ").append(str).append("= ?");
             }
         }
         astraSelectStatement = astraSession.prepare(
@@ -130,12 +124,12 @@ public class AbstractJobSession extends BaseJobSession {
             String counterTableUpdate = Util.getSparkProp(sc, "spark.counterTable.cql");
             astraInsertStatement = astraSession.prepare(counterTableUpdate);
         } else {
-            insertBinds = "";
-            for (String str : insertCols.split(",")) {
-                if (insertBinds.isEmpty()) {
-                    insertBinds += "?";
+            insertBinds = new StringBuilder();
+            for (String ignored : insertCols.split(",")) {
+                if (insertBinds.length() == 0) {
+                    insertBinds.append("?");
                 } else {
-                    insertBinds += ", ?";
+                    insertBinds.append(", ?");
                 }
             }
 
