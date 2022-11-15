@@ -1,14 +1,12 @@
 package com.bd.scala
 
 import com.datastax.spark.connector.cql.CassandraConnector
-import org.apache.spark.rdd.RDD
-
-import jv.SplitPartitions
-import jv.CopyJobSession
+import jv.{ SplitPartitions, CopyJobSession }
 import jv.SplitPartitions.Partition
 
 import java.util
 import scala.collection.convert.ImplicitConversions.`collection AsScalaIterable`
+import org.apache.spark.rdd.RDD
 
 object Migrate extends AbstractJob {
   abstractLogger.info("Started Migration App")
@@ -24,11 +22,13 @@ object Migrate extends AbstractJob {
     abstractLogger.info("Spark parallelize created : " + parts.count() + " parts!")
 
     parts.foreach(part => {
-      abstractLogger.warn(s"part: $part")
-      sourceConnection.withSessionDo(sourceSession =>
-        destinationConnection.withSessionDo(destinationSession =>
-          CopyJobSession.getInstance(sourceSession, destinationSession, sc).getDataAndInsert(part.getMin, part.getMax)
-        ))
+      sourceConnection.withSessionDo(sourceSession => {
+        destinationConnection.withSessionDo(destinationSession => {
+            CopyJobSession.getInstance(sourceSession, destinationSession)
+              .getDataAndInsert(part.getMin, part.getMax)
+          }
+        )
+      })
     })
   }
 }
