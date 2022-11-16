@@ -3,6 +3,9 @@ package com.bd.scala.jv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -63,6 +66,24 @@ public class SplitPartitions {
                 break;
             }
             curMax = curMax.add(BigInteger.ONE);
+        }
+
+        return partitions;
+    }
+
+    public static List<Partition> getSubPartitionsFromFile(int splitSize) throws IOException {
+        logger.info("TreadID: " + Thread.currentThread().getId() +
+                " Splitting partitions in file: ./partitions.csv using a split-size of " + splitSize);
+        List<Partition> partitions = new ArrayList<>();
+        BufferedReader reader = new BufferedReader(new FileReader("./partitions.csv"));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] minMax = line.split(",");
+            try {
+                partitions.addAll(getSubPartitions(splitSize, new BigInteger(minMax[0]), new BigInteger(minMax[1]), 100));
+            } catch (Exception e) {
+                logger.error("Skipping partition: " + line, e);
+            }
         }
 
         return partitions;
